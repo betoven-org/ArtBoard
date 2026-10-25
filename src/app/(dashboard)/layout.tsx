@@ -35,10 +35,19 @@ export default async function DashboardLayout({
     teams = teamsResult.data || []
   }
 
-  const { data: workspaces } = await supabase
+  // Filtrar workspaces pela org ativa — só mostra os da org do usuário
+  const workspaceQuery = supabase
     .from('workspaces')
     .select('*')
     .order('created_at', { ascending: true })
+
+  if (activeOrg) {
+    workspaceQuery.eq('org_id', activeOrg.id)
+  } else {
+    workspaceQuery.eq('owner_id', user.id)
+  }
+
+  const { data: workspaces } = await workspaceQuery
 
   const workspacesWithBoards = await Promise.all(
     (workspaces || []).map(async (ws) => {
