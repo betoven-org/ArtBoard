@@ -3,23 +3,27 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function toggleStar(boardId: string) {
+async function getUserId() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Nao autenticado')
+  return { supabase, userId: user.id }
+}
+
+export async function toggleStar(boardId: string) {
+  const { supabase, userId } = await getUserId()
 
   const { data: existing } = await supabase
-    .from('board_stars').select().eq('board_id', boardId).eq('user_id', user.id).maybeSingle()
+    .from('board_stars').select('board_id').eq('board_id', boardId).eq('user_id', userId).maybeSingle()
 
   if (existing) {
-    await supabase.from('board_stars').delete().eq('board_id', boardId).eq('user_id', user.id)
-    revalidatePath('/')
-    return false
+    await supabase.from('board_stars').delete().eq('board_id', boardId).eq('user_id', userId)
   } else {
-    await supabase.from('board_stars').insert({ board_id: boardId, user_id: user.id })
-    revalidatePath('/')
-    return true
+    await supabase.from('board_stars').insert({ board_id: boardId, user_id: userId })
   }
+
+  revalidatePath('/')
+  return !existing
 }
 
 export async function isStarred(boardId: string) {
@@ -27,7 +31,9 @@ export async function isStarred(boardId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
 
-  const { data } = await supabase
-    .from('board_stars').select().eq('board_id', boardId).eq('user_id', user.id).single()
-  return !!data
+  const { count } = await supabase
+    .from('board_stars').select('board_id', { count: 'exact', head: true })
+    .eq('board_id', boardId).eq('user_id', user.id)
+
+  return (count || 0) > 0
 }

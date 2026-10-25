@@ -34,31 +34,33 @@ export async function getBoards(workspaceId: string) {
 export async function getBoardWithLists(boardId: string) {
   const supabase = await createClient()
 
-  const { data: board, error: boardError } = await supabase
-    .from('boards').select('*').eq('id', boardId).single()
-  if (boardError) throw new Error(boardError.message)
-
-  const { data: lists, error: listsError } = await supabase
-    .from('lists').select('*').eq('board_id', boardId).eq('closed', false)
-    .order('position', { ascending: true })
-  if (listsError) throw new Error(listsError.message)
-
-  const listIds = lists.map((l) => l.id)
-
-  const [cardsResult, labelsResult] = await Promise.all([
-    supabase.from('cards')
-      .select(`*, card_labels(label_id), card_members(user_id), checklists(id, checklist_items(id, checked)), comments(id), attachments:attachments(id)`)
-      .in('list_id', listIds.length > 0 ? listIds : ['00000000-0000-0000-0000-000000000000'])
-      .eq('closed', false).order('position', { ascending: true }),
+  // Board, lists e labels em paralelo
+  const [boardResult, listsResult, labelsResult] = await Promise.all([
+    supabase.from('boards').select('*').eq('id', boardId).single(),
+    supabase.from('lists').select('*').eq('board_id', boardId).eq('closed', false).order('position', { ascending: true }),
     supabase.from('labels').select('*').eq('board_id', boardId),
   ])
 
-  const listsWithCards = lists.map((list) => ({
+  if (boardResult.error) throw new Error(boardResult.error.message)
+  if (listsResult.error) throw new Error(listsResult.error.message)
+
+  const listIds = listsResult.data.map((l) => l.id)
+
+  // Cards com relações — só se tem lists
+  let cards: any[] = []
+  if (listIds.length > 0) {
+    const { data } = await supabase.from('cards')
+      .select(`*, card_labels(label_id), card_members(user_id), checklists(id, checklist_items(id, checked)), comments(id), attachments:attachments(id)`)
+      .in('list_id', listIds).eq('closed', false).order('position', { ascending: true })
+    cards = data || []
+  }
+
+  const listsWithCards = listsResult.data.map((list) => ({
     ...list,
-    cards: (cardsResult.data || []).filter((c) => c.list_id === list.id),
+    cards: cards.filter((c) => c.list_id === list.id),
   }))
 
-  return { ...board, lists: listsWithCards, labels: labelsResult.data || [] }
+  return { ...boardResult.data, lists: listsWithCards, labels: labelsResult.data || [] }
 }
 
 export async function deleteBoard(boardId: string) {
