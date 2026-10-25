@@ -1,14 +1,10 @@
 'use server'
 
-import { getOrgContext } from '@/lib/org-context'
+import { createClient } from '@/lib/supabase/server'
 
 export async function getBoardMembers(boardId: string) {
-  const { supabase } = await getOrgContext()
-  const { data } = await supabase
-    .from('board_members')
-    .select('user_id, role')
-    .eq('board_id', boardId)
-
+  const supabase = await createClient()
+  const { data } = await supabase.from('board_members').select('user_id, role').eq('board_id', boardId)
   if (!data || data.length === 0) return []
 
   const { data: { users } } = await supabase.auth.admin.listUsers()
@@ -23,17 +19,13 @@ export async function getBoardMembers(boardId: string) {
 }
 
 export async function inviteMember(boardId: string, email: string) {
-  const { supabase } = await getOrgContext()
-
+  const supabase = await createClient()
   const { data: users } = await supabase.auth.admin.listUsers()
   const user = users?.users?.find(u => u.email === email)
-
   if (!user) throw new Error('Usuário não encontrado')
 
   const { error } = await supabase
-    .from('board_members')
-    .insert({ board_id: boardId, user_id: user.id, role: 'member' })
-
+    .from('board_members').insert({ board_id: boardId, user_id: user.id, role: 'member' })
   if (error) throw new Error(error.message)
   return { userId: user.id, email: user.email }
 }

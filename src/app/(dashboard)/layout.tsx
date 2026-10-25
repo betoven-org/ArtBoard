@@ -59,18 +59,17 @@ export default async function DashboardLayout({
   }
 
   const { data: workspaces } = await workspaceQuery
+  const wsIds = (workspaces || []).map(w => w.id)
 
-  const workspacesWithBoards = await Promise.all(
-    (workspaces || []).map(async (ws) => {
-      const { data: boards } = await supabase
-        .from('boards')
-        .select('*')
-        .eq('workspace_id', ws.id)
-        .eq('closed', false)
-        .order('created_at', { ascending: true })
-      return { ...ws, boards: boards || [] }
-    })
-  )
+  // Uma única query pra todos os boards (evita N+1)
+  const { data: allBoards } = wsIds.length > 0
+    ? await supabase.from('boards').select('*').in('workspace_id', wsIds).eq('closed', false).order('created_at', { ascending: true })
+    : { data: [] }
+
+  const workspacesWithBoards = (workspaces || []).map(ws => ({
+    ...ws,
+    boards: (allBoards || []).filter(b => b.workspace_id === ws.id),
+  }))
 
   // Buscar boards com estrela
   const { data: starredRows } = await supabase

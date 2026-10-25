@@ -2,11 +2,19 @@
 
 import { createClient } from '@/lib/supabase/server'
 
+type OrgContext = {
+  userId: string
+  orgId: string
+  role: 'owner' | 'admin' | 'member' | 'viewer'
+  supabase: Awaited<ReturnType<typeof createClient>>
+}
+
 /**
  * Resolve org_id do usuário autenticado.
- * Toda server action que toca dados deve chamar isso.
+ * Usar apenas em operações que precisam de org_id (create, delete, admin).
+ * Para operações simples (update card, toggle), usar createClient() direto — RLS protege.
  */
-export async function getOrgContext() {
+export async function getOrgContext(): Promise<OrgContext> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
@@ -23,49 +31,49 @@ export async function getOrgContext() {
   return {
     userId: user.id,
     orgId: membership.org_id,
-    role: membership.role as 'owner' | 'admin' | 'member' | 'viewer',
+    role: membership.role as OrgContext['role'],
     supabase,
   }
 }
 
 /**
  * Registra ação no audit log.
+ * Aceita contexto já resolvido para evitar roundtrip duplicado.
  */
 export async function audit(
   action: string,
   targetType: string,
   targetId?: string,
   details?: Record<string, unknown>,
+  ctx?: OrgContext,
 ) {
-  const { supabase, userId, orgId } = await getOrgContext()
-
-  await supabase.from('audit_logs').insert({
-    org_id: orgId,
-    user_id: userId,
+  const resolved = ctx || await getOrgContext()
+  // Fire-and-forget — não bloqueia a resposta
+  resolved.supabase.from('audit_logs').insert({
+    org_id: resolved.orgId,
+    user_id: resolved.userId,
     action,
     target_type: targetType,
     target_id: targetId || null,
     details: details || {},
-  })
+  }).then(() => {})
 }
 
 /**
  * Verifica se o plano da org permite a feature.
  */
-export async function checkFeature(feature: string): Promise<boolean> {
-  const { supabase, orgId } = await getOrgContext()
-
-  const { data } = await supabase
-    .rpc('can_use_feature', { p_org_id: orgId, p_feature: feature })
-
+export async function checkFeature(feature: string, ctx?: OrgContext): Promise<boolean> {
+  const resolved = ctx || await getOrgContext()
+  const { data } = await resolved.supabase
+    .rpc('can_use_feature', { p_org_id: resolved.orgId, p_feature: feature })
   return data === true
 }
 
 /**
  * Lança erro se a feature não está no plano.
  */
-export async function requireFeature(feature: string) {
-  const allowed = await checkFeature(feature)
+export async function requireFeature(feature: string, ctx?: OrgContext) {
+  const allowed = await checkFeature(feature, ctx)
   if (!allowed) {
     throw new Error(`Seu plano não inclui "${feature}". Faça upgrade para continuar.`)
   }
@@ -74,13 +82,10 @@ export async function requireFeature(feature: string) {
 /**
  * Verifica se user tem role mínima na org.
  */
-export async function requireRole(minRole: 'viewer' | 'member' | 'admin' | 'owner') {
-  const { role } = await getOrgContext()
+export async function requireRole(minRole: 'viewer' | 'member' | 'admin' | 'owner', ctx?: OrgContext) {
+  const resolved = ctx || await getOrgContext()
   const hierarchy = ['viewer', 'member', 'admin', 'owner']
-  const userLevel = hierarchy.indexOf(role)
-  const requiredLevel = hierarchy.indexOf(minRole)
-
-  if (userLevel < requiredLevel) {
+  if (hierarchy.indexOf(resolved.role) < hierarchy.indexOf(minRole)) {
     throw new Error(`Permissão insuficiente. Requer: ${minRole}`)
   }
 }
