@@ -168,3 +168,50 @@ export type ListWithCards = List & {
 export type BoardWithLists = Board & {
   lists: ListWithCards[]
 }
+
+export type AuditLog = {
+  id: string
+  org_id: string
+  user_id: string
+  action: string
+  target_type: string
+  target_id: string | null
+  details: Record<string, unknown>
+  created_at: string
+}
+
+export type Plan = {
+  id: string
+  name: string
+  price_monthly: number
+  price_yearly: number
+  max_members: number
+  max_workspaces: number
+  max_boards_per_workspace: number
+  max_storage_mb: number
+  features: string[]
+}
+
+export type OrgRole = {
+  id: string
+  org_id: string
+  name: string
+  permissions: Record<string, string[]>
+  is_default: boolean
+  created_at: string
+}
+
+export type ApiKey = {
+  id: string
+  org_id: string
+  user_id: string
+  name: string
+  key_prefix: string
+  permissions: Record<string, string[]>
+  scopes: string[]
+  expires_at: string | null
+  last_used_at: string | null
+  remaining_calls: number | null
+  is_active: boolean
+  created_at: string
+}

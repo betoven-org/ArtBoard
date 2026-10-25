@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getOrgContext, audit } from '@/lib/org-context'
 
 const BOARD_BACKGROUNDS = [
   '#0079bf', '#d29034', '#519839', '#b04632',
@@ -9,8 +10,21 @@ const BOARD_BACKGROUNDS = [
   '#838c91',
 ]
 
+/** Valida que o workspace pertence à org do user */
+async function verifyWorkspaceOrg(supabase: any, workspaceId: string, orgId: string) {
+  const { data } = await supabase
+    .from('workspaces')
+    .select('id')
+    .eq('id', workspaceId)
+    .eq('org_id', orgId)
+    .single()
+
+  if (!data) throw new Error('Workspace não pertence à sua organização')
+}
+
 export async function createBoard(workspaceId: string, name: string, background?: string) {
-  const supabase = await createClient()
+  const { supabase, orgId } = await getOrgContext()
+  await verifyWorkspaceOrg(supabase, workspaceId, orgId)
 
   const bg = background || BOARD_BACKGROUNDS[Math.floor(Math.random() * BOARD_BACKGROUNDS.length)]
 
@@ -21,6 +35,8 @@ export async function createBoard(workspaceId: string, name: string, background?
     .single()
 
   if (error) throw new Error(error.message)
+
+  await audit('create', 'board', data.id, { name, workspaceId })
   revalidatePath('/')
   return data
 }
@@ -90,24 +106,28 @@ export async function getBoardWithLists(boardId: string) {
 }
 
 export async function deleteBoard(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('boards')
     .update({ closed: true })
     .eq('id', boardId)
 
   if (error) throw new Error(error.message)
+
+  await audit('delete', 'board', boardId)
   revalidatePath('/')
 }
 
 export async function updateBoardName(boardId: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('boards')
     .update({ name })
     .eq('id', boardId)
 
   if (error) throw new Error(error.message)
+
+  await audit('update', 'board', boardId, { name })
   revalidatePath(`/board/${boardId}`)
   revalidatePath('/')
 }
@@ -117,9 +137,9 @@ export async function createBoardFromTemplate(workspaceId: string, templateId: s
   const template = BOARD_TEMPLATES.find((t) => t.id === templateId)
   if (!template) throw new Error('Template nao encontrado')
 
-  const supabase = await createClient()
+  const { supabase, orgId } = await getOrgContext()
+  await verifyWorkspaceOrg(supabase, workspaceId, orgId)
 
-  // Criar board
   const { data: board, error: boardError } = await supabase
     .from('boards')
     .insert({ workspace_id: workspaceId, name: template.name, background: template.background })
@@ -128,7 +148,6 @@ export async function createBoardFromTemplate(workspaceId: string, templateId: s
 
   if (boardError) throw new Error(boardError.message)
 
-  // Criar listas e cards
   for (let i = 0; i < template.lists.length; i++) {
     const listData = template.lists[i]
     const { data: list, error: listError } = await supabase
@@ -150,12 +169,13 @@ export async function createBoardFromTemplate(workspaceId: string, templateId: s
     }
   }
 
+  await audit('create', 'board', board.id, { template: templateId, workspaceId })
   revalidatePath('/')
   return board
 }
 
 export async function updateBoardDescription(boardId: string, description: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('boards')
     .update({ description })
@@ -166,7 +186,7 @@ export async function updateBoardDescription(boardId: string, description: strin
 }
 
 export async function duplicateBoard(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: original } = await supabase.from('boards').select('*').eq('id', boardId).single()
   if (!original) throw new Error('Board nao encontrado')
@@ -191,12 +211,13 @@ export async function duplicateBoard(boardId: string) {
     }
   }
 
+  await audit('duplicate', 'board', copy.id, { originalId: boardId })
   revalidatePath('/')
   return copy
 }
 
 export async function updateBoardBackground(boardId: string, background: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('boards')
     .update({ background })
