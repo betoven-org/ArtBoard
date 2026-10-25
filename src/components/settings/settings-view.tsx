@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { Building2, Users, Shield, Key, ScrollText, CreditCard, Plus, Trash2, Copy, Check } from 'lucide-react'
+import { Building2, Users, Shield, Key, ScrollText, CreditCard, Plus, Trash2, Copy, Check, Webhook } from 'lucide-react'
 import { createApiKey, revokeApiKey } from '@/lib/actions/api-key'
 import { createOrgRole, updateOrgRole, deleteOrgRole } from '@/lib/actions/org-role'
 import { updateOrganization } from '@/lib/actions/organization'
+import { createWebhook, deleteWebhook, toggleWebhook } from '@/lib/actions/webhook'
 
 const PERMISSION_RESOURCES = ['workspaces', 'boards', 'members', 'settings', 'billing'] as const
 const PERMISSION_ACTIONS = ['read', 'create', 'update', 'delete', '*'] as const
@@ -16,9 +17,13 @@ const C = {
   inputBg: '#282E33', cardBg: '#282E33',
 }
 
-type Tab = 'general' | 'members' | 'roles' | 'api-keys' | 'audit' | 'plans'
+type Tab = 'general' | 'members' | 'roles' | 'api-keys' | 'audit' | 'plans' | 'webhooks'
 
-export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, userRole, usage }: {
+const WEBHOOK_EVENTS = [
+  'card.created', 'card.moved', 'card.completed', 'board.created', 'sprint.completed',
+] as const
+
+export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, userRole, usage, webhooks: initialWebhooks }: {
   org: any
   members: any[]
   plans: any[]
@@ -27,6 +32,7 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
   auditLogs: any[]
   userRole: string
   usage: { members: number; workspaces: number }
+  webhooks?: any[]
 }) {
   const [tab, setTab] = useState<Tab>('general')
   const [orgName, setOrgName] = useState(org?.name || '')
@@ -38,6 +44,11 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
   const [editingRole, setEditingRole] = useState<string | null>(null)
   const [editPerms, setEditPerms] = useState<Record<string, string[]>>({})
   const [savingRole, setSavingRole] = useState(false)
+  const [whName, setWhName] = useState('')
+  const [whUrl, setWhUrl] = useState('')
+  const [whEvents, setWhEvents] = useState<string[]>([])
+  const [whSecret, setWhSecret] = useState('')
+  const [whSaving, setWhSaving] = useState(false)
   const isAdmin = userRole === 'owner' || userRole === 'admin'
 
   const currentPlan = plans.find(p => p.id === org?.plan) || plans[0]
@@ -49,6 +60,7 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
     { id: 'api-keys', label: 'API Keys', icon: Key },
     { id: 'audit', label: 'Audit Log', icon: ScrollText },
     { id: 'plans', label: 'Planos', icon: CreditCard },
+    { id: 'webhooks', label: 'Webhooks', icon: Webhook },
   ]
 
   async function handleSaveOrg() {
@@ -537,6 +549,146 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* Webhooks */}
+      {tab === 'webhooks' && (
+        <div>
+          <p style={{ color: C.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', marginBottom: 12 }}>
+            Webhooks ({(initialWebhooks || []).length})
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
+            {(initialWebhooks || []).map((wh: any) => (
+              <div key={wh.id} style={{
+                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+                background: C.cardBg, borderRadius: 8, border: `1px solid ${C.border}`,
+                opacity: wh.is_active ? 1 : 0.5, flexWrap: 'wrap',
+              }}>
+                <Webhook size={14} color={wh.is_active ? C.accent : C.muted} />
+                <div style={{ flex: 1, minWidth: 120 }}>
+                  <p style={{ color: C.heading, fontSize: 14, fontWeight: 500, margin: 0 }}>{wh.name}</p>
+                  <p style={{ color: C.muted, fontSize: 11, margin: '2px 0 0', wordBreak: 'break-all' }}>{wh.url}</p>
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  {(wh.events || []).map((ev: string) => (
+                    <span key={ev} style={{
+                      padding: '1px 6px', borderRadius: 3, fontSize: 10, fontWeight: 600,
+                      background: '#579DFF20', color: C.accent,
+                    }}>
+                      {ev}
+                    </span>
+                  ))}
+                </div>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={async () => { await toggleWebhook(wh.id, !wh.is_active); window.location.reload() }}
+                      style={{
+                        background: 'none', border: `1px solid ${C.border}`, borderRadius: 4,
+                        color: wh.is_active ? C.success : C.muted, fontSize: 11, padding: '4px 8px', cursor: 'pointer',
+                      }}
+                    >
+                      {wh.is_active ? 'Ativo' : 'Inativo'}
+                    </button>
+                    <button
+                      onClick={async () => { await deleteWebhook(wh.id); window.location.reload() }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.danger, padding: 4 }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </>
+                )}
+              </div>
+            ))}
+            {(initialWebhooks || []).length === 0 && (
+              <p style={{ color: C.muted, fontSize: 13, textAlign: 'center', padding: 20 }}>Nenhum webhook configurado</p>
+            )}
+          </div>
+
+          {isAdmin && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                if (!whName.trim() || !whUrl.trim() || whEvents.length === 0) return
+                setWhSaving(true)
+                try {
+                  await createWebhook(org.id, whName.trim(), whUrl.trim(), whEvents, whSecret.trim() || undefined)
+                  setWhName(''); setWhUrl(''); setWhEvents([]); setWhSecret('')
+                  window.location.reload()
+                } catch { /* erro silencioso */ }
+                setWhSaving(false)
+              }}
+              style={{ background: C.cardBg, borderRadius: 8, padding: 16, border: `1px solid ${C.border}` }}
+            >
+              <p style={{ color: C.muted, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', marginBottom: 12 }}>
+                Novo webhook
+              </p>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  value={whName}
+                  onChange={e => setWhName(e.target.value)}
+                  placeholder="Nome"
+                  style={{
+                    flex: 1, background: C.inputBg, color: C.heading, border: `1px solid ${C.border}`,
+                    borderRadius: 6, padding: '8px 12px', fontSize: 13, outline: 'none',
+                  }}
+                />
+                <input
+                  value={whUrl}
+                  onChange={e => setWhUrl(e.target.value)}
+                  placeholder="https://..."
+                  type="url"
+                  style={{
+                    flex: 2, background: C.inputBg, color: C.heading, border: `1px solid ${C.border}`,
+                    borderRadius: 6, padding: '8px 12px', fontSize: 13, outline: 'none',
+                  }}
+                />
+              </div>
+              <input
+                value={whSecret}
+                onChange={e => setWhSecret(e.target.value)}
+                placeholder="Secret (opcional, para assinatura HMAC)"
+                style={{
+                  width: '100%', background: C.inputBg, color: C.heading, border: `1px solid ${C.border}`,
+                  borderRadius: 6, padding: '8px 12px', fontSize: 13, outline: 'none', marginBottom: 8, boxSizing: 'border-box',
+                }}
+              />
+              <p style={{ color: C.muted, fontSize: 11, marginBottom: 6 }}>Eventos:</p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                {WEBHOOK_EVENTS.map(ev => {
+                  const selected = whEvents.includes(ev)
+                  return (
+                    <button
+                      key={ev}
+                      type="button"
+                      onClick={() => setWhEvents(selected ? whEvents.filter(e => e !== ev) : [...whEvents, ev])}
+                      style={{
+                        padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                        background: selected ? '#579DFF30' : C.inputBg,
+                        color: selected ? C.accent : C.muted,
+                        border: `1px solid ${selected ? C.accent : C.border}`,
+                      }}
+                    >
+                      {ev}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                type="submit"
+                disabled={whSaving || !whName.trim() || !whUrl.trim() || whEvents.length === 0}
+                style={{
+                  background: C.accent, color: C.bg, border: 'none', borderRadius: 6,
+                  padding: '8px 16px', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  opacity: whSaving ? 0.5 : 1,
+                }}
+              >
+                <Plus size={14} /> {whSaving ? 'Criando...' : 'Criar webhook'}
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>

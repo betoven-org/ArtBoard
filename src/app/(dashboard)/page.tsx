@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { CreateBoardButton } from '@/components/board/create-board-button'
 import { RecentBoards } from '@/components/board/recent-boards'
 import { WorkspaceActions } from '@/components/workspace/workspace-actions'
-import { LayoutGrid } from 'lucide-react'
+import { OnboardingWizard } from '@/components/onboarding/onboarding-wizard'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,17 +19,28 @@ export default async function HomePage() {
     .order('created_at', { ascending: true })
 
   if (!workspaces || workspaces.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <LayoutGrid className="w-12 h-12 text-[#579DFF] mb-4 opacity-50" />
-        <h2 className="text-lg font-semibold text-[#DEE4EA] mb-2">
-          Bem-vindo ao ArtBoard
-        </h2>
-        <p className="text-sm text-[#9FADBC] mb-6 max-w-md">
-          Crie seu primeiro workspace para comecar a organizar seus projetos, tarefas e equipe.
-        </p>
-      </div>
-    )
+    // Buscar org do usuario para o onboarding
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('org_id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+
+    let orgName = 'Minha Organizacao'
+    let orgId = ''
+
+    if (membership) {
+      orgId = membership.org_id
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', membership.org_id)
+        .single()
+      if (org) orgName = org.name
+    }
+
+    return <OnboardingWizard orgName={orgName} orgId={orgId} />
   }
 
   const workspacesWithBoards = await Promise.all(

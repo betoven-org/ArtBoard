@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DashboardView } from '@/components/dashboard/dashboard-view'
+import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,13 +56,40 @@ export default async function DashboardPage() {
     }
   }
 
+  // Audit logs recentes para activity feed
+  const { data: membership } = await supabase
+    .from('organization_members')
+    .select('org_id')
+    .eq('user_id', user.id)
+    .limit(1)
+    .maybeSingle()
+
+  let auditLogs: any[] = []
+  if (membership) {
+    const { data } = await supabase
+      .from('audit_logs')
+      .select('*')
+      .eq('org_id', membership.org_id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    auditLogs = data || []
+  }
+
   return (
-    <DashboardView
-      timeEntries={(timeEntries || []) as any[]}
-      overdueCards={(overdueCards || []) as any[]}
-      unassignedCards={unassignedCards as any[]}
-      workspaces={workspaces || []}
-      userNames={userMap}
-    />
+    <div style={{ display: 'flex', gap: 12, height: '100%' }}>
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        <DashboardView
+          timeEntries={(timeEntries || []) as any[]}
+          overdueCards={(overdueCards || []) as any[]}
+          unassignedCards={unassignedCards as any[]}
+          workspaces={workspaces || []}
+          userNames={userMap}
+        />
+      </div>
+      <div style={{ width: 320, flexShrink: 0, overflow: 'auto', background: '#1D2125', borderRadius: 12, padding: 16 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 600, color: '#DEE4EA', marginBottom: 12 }}>Atividade Recente</h3>
+        <ActivityFeed logs={auditLogs} />
+      </div>
+    </div>
   )
 }

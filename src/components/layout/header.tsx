@@ -6,6 +6,7 @@ import { LogOut, Search, Bell, HelpCircle, Plus, ChevronDown, LayoutGrid, Layers
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { SearchBar } from '@/components/board/search-bar'
+import { GlobalSearch } from '@/components/layout/global-search'
 import { Notifications } from '@/components/layout/notifications'
 import { createBoard } from '@/lib/actions/board'
 import { createWorkspace } from '@/lib/actions/workspace'
@@ -366,6 +367,9 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
       <div className="flex-1 hidden sm:flex justify-center px-4">
         <SearchBar />
       </div>
+
+      {/* Global Search (Cmd+K) */}
+      <GlobalSearch />
 
       {/* Lado direito */}
       <div className="flex items-center gap-1">

@@ -18,13 +18,14 @@ export default async function SettingsPage() {
 
   if (!membership) redirect('/')
 
-  const [orgResult, membersResult, plansResult, rolesResult, keysResult, logsResult] = await Promise.all([
+  const [orgResult, membersResult, plansResult, rolesResult, keysResult, logsResult, webhooksResult] = await Promise.all([
     supabase.from('organizations').select('*').eq('id', membership.org_id).single(),
     supabase.from('organization_members').select('*').eq('org_id', membership.org_id),
     supabase.from('plans').select('*').order('price_monthly'),
     supabase.from('org_roles').select('*').eq('org_id', membership.org_id).order('is_default', { ascending: false }),
     supabase.from('api_keys').select('id, name, key_prefix, scopes, is_active, last_used_at, created_at').eq('org_id', membership.org_id).order('created_at', { ascending: false }),
     supabase.from('audit_logs').select('*').eq('org_id', membership.org_id).order('created_at', { ascending: false }).limit(50),
+    supabase.from('webhooks').select('*').eq('org_id', membership.org_id).order('created_at', { ascending: false }),
   ])
 
   // Count usage
@@ -40,6 +41,7 @@ export default async function SettingsPage() {
       auditLogs={logsResult.data || []}
       userRole={membership.role}
       usage={{ members: membersResult.data?.length || 0, workspaces: wsCount || 0 }}
+      webhooks={webhooksResult.data || []}
     />
   )
 }
