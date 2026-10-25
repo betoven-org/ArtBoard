@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { LogOut, Search, Bell, HelpCircle, Plus, ChevronDown, LayoutGrid, Layers, Clock, Star as StarIcon, FileText, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { SearchBar } from '@/components/board/search-bar'
 import { GlobalSearch } from '@/components/layout/global-search'
 import { Notifications } from '@/components/layout/notifications'
 import { createBoard } from '@/lib/actions/board'
@@ -363,13 +362,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
         </button>
       </div>
 
-      {/* Centro - Search */}
+      {/* Centro - Search (Cmd+K) */}
       <div className="flex-1 hidden sm:flex justify-center px-4">
-        <SearchBar />
+        <GlobalSearch />
       </div>
-
-      {/* Global Search (Cmd+K) */}
-      <GlobalSearch />
 
       {/* Lado direito */}
       <div className="flex items-center gap-1">
