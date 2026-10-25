@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function createWorkspace(name: string) {
+export async function createWorkspace(name: string, orgId?: string, clientId?: string, teamId?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
@@ -13,7 +13,14 @@ export async function createWorkspace(name: string) {
 
   const { data, error } = await supabase
     .from('workspaces')
-    .insert({ name, slug, owner_id: user.id })
+    .insert({
+      name,
+      slug,
+      owner_id: user.id,
+      org_id: orgId || null,
+      client_id: clientId || null,
+      team_id: teamId || null,
+    })
     .select()
     .single()
 

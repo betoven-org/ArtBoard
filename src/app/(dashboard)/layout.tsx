@@ -15,6 +15,26 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/auth/login')
 
+  // Buscar orgs do usuário
+  const { data: orgs } = await supabase
+    .from('organizations')
+    .select('*')
+    .order('created_at', { ascending: true })
+
+  // Buscar clients da primeira org (ou a ativa)
+  const activeOrg = orgs?.[0]
+  let clients: any[] = []
+  let teams: any[] = []
+
+  if (activeOrg) {
+    const [clientsResult, teamsResult] = await Promise.all([
+      supabase.from('clients').select('*').eq('org_id', activeOrg.id).order('name'),
+      supabase.from('teams').select('*').eq('org_id', activeOrg.id).order('name'),
+    ])
+    clients = clientsResult.data || []
+    teams = teamsResult.data || []
+  }
+
   const { data: workspaces } = await supabase
     .from('workspaces')
     .select('*')
@@ -67,7 +87,12 @@ export default async function DashboardLayout({
         style={{ background: '#0D1117', gap: 12, padding: 12 }}
       >
         {/* Painel esquerdo */}
-        <Sidebar workspaces={workspacesWithBoards} />
+        <Sidebar
+          workspaces={workspacesWithBoards}
+          organizations={orgs || []}
+          clients={clients}
+          teams={teams}
+        />
         {/* Painel direito (board) */}
         <main className="flex-1 overflow-auto" style={{ borderRadius: 12 }}>
           {children}

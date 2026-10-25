@@ -1,8 +1,54 @@
+export type Organization = {
+  id: string
+  name: string
+  slug: string
+  plan: 'free' | 'starter' | 'pro' | 'enterprise'
+  owner_id: string
+  logo_url: string | null
+  created_at: string
+}
+
+export type OrgMember = {
+  org_id: string
+  user_id: string
+  role: 'owner' | 'admin' | 'member' | 'viewer'
+  created_at: string
+  name?: string
+  email?: string
+}
+
+export type Team = {
+  id: string
+  org_id: string
+  name: string
+  created_at: string
+}
+
+export type TeamMember = {
+  team_id: string
+  user_id: string
+  role: 'lead' | 'member'
+  created_at: string
+}
+
+export type Client = {
+  id: string
+  org_id: string
+  name: string
+  slug: string
+  contact_email: string | null
+  logo_url: string | null
+  created_at: string
+}
+
 export type Workspace = {
   id: string
   name: string
   slug: string
   owner_id: string
+  org_id: string | null
+  client_id: string | null
+  team_id: string | null
   created_at: string
 }
 
