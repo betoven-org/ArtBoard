@@ -1,17 +1,15 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function startTimer(cardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   // Parar qualquer timer ativo do user
   const { data: active } = await supabase
     .from('time_entries')
     .select('id, started_at')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .is('stopped_at', null)
 
   if (active && active.length > 0) {
@@ -34,12 +32,11 @@ export async function startTimer(cardId: string) {
   const boardId = (cardData as any)?.lists?.board_id || null
   const workspaceId = (cardData as any)?.lists?.boards?.workspace_id || null
 
-  // Criar novo timer com contexto completo
   const { data, error } = await supabase
     .from('time_entries')
     .insert({
       card_id: cardId,
-      user_id: user.id,
+      user_id: userId,
       board_id: boardId,
       workspace_id: workspaceId,
     })
@@ -51,15 +48,13 @@ export async function startTimer(cardId: string) {
 }
 
 export async function pauseTimer(cardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const { data: active } = await supabase
     .from('time_entries')
     .select('id, started_at, paused_seconds, paused_at')
     .eq('card_id', cardId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .is('stopped_at', null)
     .is('paused_at', null)
     .maybeSingle()
@@ -75,22 +70,19 @@ export async function pauseTimer(cardId: string) {
 }
 
 export async function resumeTimer(cardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const { data: paused } = await supabase
     .from('time_entries')
     .select('id, paused_at, paused_seconds')
     .eq('card_id', cardId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .is('stopped_at', null)
     .not('paused_at', 'is', null)
     .maybeSingle()
 
   if (!paused || !paused.paused_at) return null
 
-  // Acumular tempo pausado
   const pausedDuration = Math.floor((Date.now() - new Date(paused.paused_at).getTime()) / 1000)
   const totalPaused = (paused.paused_seconds || 0) + pausedDuration
 
@@ -103,23 +95,19 @@ export async function resumeTimer(cardId: string) {
 }
 
 export async function stopTimer(cardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const { data: active } = await supabase
     .from('time_entries')
     .select('id, started_at, paused_at, paused_seconds')
     .eq('card_id', cardId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .is('stopped_at', null)
     .maybeSingle()
 
   if (!active) return null
 
-  // Calcular duração total = (agora - inicio) - tempo pausado total
   let totalPaused = active.paused_seconds || 0
-  // Se está pausado agora, adicionar esse período de pausa
   if (active.paused_at) {
     totalPaused += Math.floor((Date.now() - new Date(active.paused_at).getTime()) / 1000)
   }
@@ -141,14 +129,12 @@ export async function stopTimer(cardId: string) {
 }
 
 export async function getActiveTimer() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const { supabase, userId } = await getOrgContext()
 
   const { data } = await supabase
     .from('time_entries')
     .select('id, card_id, started_at')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .is('stopped_at', null)
     .maybeSingle()
 
@@ -156,7 +142,7 @@ export async function getActiveTimer() {
 }
 
 export async function getCardTimeEntries(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('time_entries')
     .select('*')
@@ -167,16 +153,13 @@ export async function getCardTimeEntries(cardId: string) {
   return data || []
 }
 
-// Timesheet mensal — filtra por workspace e opcionalmente por user
 export async function getMonthlyTimesheet(
   year: number,
   month: number,
   workspaceId?: string,
   userId?: string
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return []
+  const { supabase } = await getOrgContext()
 
   const startDate = new Date(year, month - 1, 1).toISOString()
   const endDate = new Date(year, month, 0, 23, 59, 59).toISOString()
@@ -184,15 +167,8 @@ export async function getMonthlyTimesheet(
   let query = supabase
     .from('time_entries')
     .select(`
-      id,
-      card_id,
-      user_id,
-      board_id,
-      workspace_id,
-      description,
-      started_at,
-      stopped_at,
-      duration_seconds,
+      id, card_id, user_id, board_id, workspace_id, description,
+      started_at, stopped_at, duration_seconds,
       cards(name, lists(name, boards(name, workspace_id)))
     `)
     .not('stopped_at', 'is', null)
@@ -200,12 +176,10 @@ export async function getMonthlyTimesheet(
     .lte('started_at', endDate)
     .order('started_at', { ascending: false })
 
-  // Se é owner do workspace, pode ver entries de todos os membros
   if (workspaceId) {
     query = query.eq('workspace_id', workspaceId)
   }
 
-  // Filtrar por user específico (ou próprio)
   if (userId) {
     query = query.eq('user_id', userId)
   }
@@ -214,19 +188,16 @@ export async function getMonthlyTimesheet(
   return data || []
 }
 
-// Listar usuarios com horas no workspace (pra dropdown de filtro)
 export async function getWorkspaceTimesheetUsers(workspaceId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('time_entries')
     .select('user_id')
     .eq('workspace_id', workspaceId)
     .not('stopped_at', 'is', null)
 
-  // Deduplicate user IDs
   const userIds = [...new Set((data || []).map((e: any) => e.user_id))]
 
-  // Buscar nomes
   const { data: { users } } = await supabase.auth.admin.listUsers()
   return userIds.map((id) => {
     const u = users?.find((usr) => usr.id === id)
@@ -239,7 +210,7 @@ export async function getWorkspaceTimesheetUsers(workspaceId: string) {
 }
 
 export async function updateTimeEntry(entryId: string, startedAt: string, stoppedAt: string, description?: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const start = new Date(startedAt)
   const stop = new Date(stoppedAt)
   const duration = Math.floor((stop.getTime() - start.getTime()) / 1000)
@@ -259,7 +230,7 @@ export async function updateTimeEntry(entryId: string, startedAt: string, stoppe
 }
 
 export async function deleteTimeEntry(entryId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('time_entries')
     .delete()
@@ -268,16 +239,13 @@ export async function deleteTimeEntry(entryId: string) {
   if (error) throw new Error(error.message)
 }
 
-// Registro manual de tempo
 export async function addManualTimeEntry(
   cardId: string,
   startedAt: string,
   stoppedAt: string,
   description?: string
 ) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const start = new Date(startedAt)
   const stop = new Date(stoppedAt)
@@ -285,7 +253,6 @@ export async function addManualTimeEntry(
 
   if (duration <= 0) throw new Error('Horario de fim deve ser depois do inicio')
 
-  // Buscar contexto
   const { data: cardData } = await supabase
     .from('cards')
     .select('list_id, lists(board_id, boards(workspace_id))')
@@ -299,7 +266,7 @@ export async function addManualTimeEntry(
     .from('time_entries')
     .insert({
       card_id: cardId,
-      user_id: user.id,
+      user_id: userId,
       board_id: boardId,
       workspace_id: workspaceId,
       started_at: start.toISOString(),

@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { Building2, Users, Shield, Key, ScrollText, CreditCard, Plus, Trash2, Copy, Check } from 'lucide-react'
 import { createApiKey, revokeApiKey } from '@/lib/actions/api-key'
-import { createOrgRole, deleteOrgRole } from '@/lib/actions/org-role'
+import { createOrgRole, updateOrgRole, deleteOrgRole } from '@/lib/actions/org-role'
 import { updateOrganization } from '@/lib/actions/organization'
+
+const PERMISSION_RESOURCES = ['workspaces', 'boards', 'members', 'settings', 'billing'] as const
+const PERMISSION_ACTIONS = ['read', 'create', 'update', 'delete', '*'] as const
 
 const C = {
   bg: '#1D2125', surface: '#22272B', border: '#A6C5E229',
@@ -32,6 +35,9 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [newRoleName, setNewRoleName] = useState('')
+  const [editingRole, setEditingRole] = useState<string | null>(null)
+  const [editPerms, setEditPerms] = useState<Record<string, string[]>>({})
+  const [savingRole, setSavingRole] = useState(false)
   const isAdmin = userRole === 'owner' || userRole === 'admin'
 
   const currentPlan = plans.find(p => p.id === org?.plan) || plans[0]
@@ -189,23 +195,140 @@ export function SettingsView({ org, members, plans, roles, apiKeys, auditLogs, u
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
             {roles.map(r => (
-              <div key={r.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                background: C.cardBg, borderRadius: 8, border: `1px solid ${C.border}`,
-              }}>
-                <Shield size={14} color={r.is_default ? C.accent : '#9F8FEF'} />
-                <span style={{ flex: 1, color: C.heading, fontSize: 14, fontWeight: 500 }}>{r.name}</span>
-                {r.is_default && <span style={{ fontSize: 11, color: C.muted }}>padrão</span>}
-                <code style={{ fontSize: 11, color: C.muted, maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {Object.keys(r.permissions || {}).join(', ')}
-                </code>
-                {!r.is_default && isAdmin && (
-                  <button
-                    onClick={async () => { await deleteOrgRole(r.id); window.location.reload() }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.danger, padding: 4 }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+              <div key={r.id}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
+                  background: editingRole === r.id ? C.surface : C.cardBg,
+                  borderRadius: editingRole === r.id ? '8px 8px 0 0' : 8,
+                  border: `1px solid ${editingRole === r.id ? C.accent : C.border}`,
+                  borderBottom: editingRole === r.id ? 'none' : undefined,
+                }}>
+                  <Shield size={14} color={r.is_default ? C.accent : '#9F8FEF'} />
+                  <span style={{ flex: 1, color: C.heading, fontSize: 14, fontWeight: 500 }}>{r.name}</span>
+                  {r.is_default && <span style={{ fontSize: 11, color: C.muted }}>padrão</span>}
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        if (editingRole === r.id) { setEditingRole(null) } else {
+                          setEditingRole(r.id)
+                          setEditPerms(r.permissions || {})
+                        }
+                      }}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: editingRole === r.id ? C.accent : C.muted,
+                        fontSize: 12, padding: '4px 8px',
+                      }}
+                    >
+                      {editingRole === r.id ? 'Fechar' : 'Editar'}
+                    </button>
+                  )}
+                  {!r.is_default && isAdmin && (
+                    <button
+                      onClick={async () => { await deleteOrgRole(r.id); window.location.reload() }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.danger, padding: 4 }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Permission editor */}
+                {editingRole === r.id && (
+                  <div style={{
+                    padding: 16, background: C.surface,
+                    border: `1px solid ${C.accent}`, borderTop: 'none',
+                    borderRadius: '0 0 8px 8px',
+                  }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left', padding: '4px 8px', color: C.muted, fontSize: 11, fontWeight: 600, textTransform: 'uppercase' }}>
+                            Recurso
+                          </th>
+                          {PERMISSION_ACTIONS.map(a => (
+                            <th key={a} style={{ textAlign: 'center', padding: '4px 6px', color: C.muted, fontSize: 11, fontWeight: 600, textTransform: 'uppercase' }}>
+                              {a === '*' ? 'Tudo' : a === 'read' ? 'Ver' : a === 'create' ? 'Criar' : a === 'update' ? 'Editar' : 'Deletar'}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {PERMISSION_RESOURCES.map(resource => {
+                          const perms = editPerms[resource] || []
+                          const hasAll = perms.includes('*')
+                          return (
+                            <tr key={resource}>
+                              <td style={{ padding: '6px 8px', color: C.text, fontSize: 13, fontWeight: 500 }}>
+                                {resource === 'workspaces' ? 'Projetos' : resource === 'boards' ? 'Boards' : resource === 'members' ? 'Membros' : resource === 'settings' ? 'Config' : 'Billing'}
+                              </td>
+                              {PERMISSION_ACTIONS.map(action => {
+                                const checked = hasAll || perms.includes(action)
+                                return (
+                                  <td key={action} style={{ textAlign: 'center', padding: '6px' }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={checked}
+                                      disabled={r.is_default}
+                                      onChange={() => {
+                                        const current = editPerms[resource] || []
+                                        let next: string[]
+                                        if (action === '*') {
+                                          next = checked ? [] : ['*']
+                                        } else if (checked) {
+                                          next = current.filter(a => a !== action && a !== '*')
+                                        } else {
+                                          next = [...current.filter(a => a !== '*'), action]
+                                        }
+                                        setEditPerms({ ...editPerms, [resource]: next })
+                                      }}
+                                      style={{ cursor: r.is_default ? 'not-allowed' : 'pointer', accentColor: C.accent }}
+                                    />
+                                  </td>
+                                )
+                              })}
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                    {!r.is_default && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12, gap: 8 }}>
+                        <button
+                          onClick={() => setEditingRole(null)}
+                          style={{
+                            background: 'transparent', border: `1px solid ${C.border}`,
+                            color: C.text, borderRadius: 6, padding: '6px 14px',
+                            fontSize: 12, cursor: 'pointer',
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          disabled={savingRole}
+                          onClick={async () => {
+                            setSavingRole(true)
+                            await updateOrgRole(r.id, { permissions: editPerms })
+                            setSavingRole(false)
+                            setEditingRole(null)
+                            window.location.reload()
+                          }}
+                          style={{
+                            background: C.accent, color: C.bg, border: 'none', borderRadius: 6,
+                            padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                            opacity: savingRole ? 0.5 : 1,
+                          }}
+                        >
+                          {savingRole ? 'Salvando...' : 'Salvar permissões'}
+                        </button>
+                      </div>
+                    )}
+                    {r.is_default && (
+                      <p style={{ color: C.muted, fontSize: 11, marginTop: 8, textAlign: 'center' }}>
+                        Roles padrão são somente leitura
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
