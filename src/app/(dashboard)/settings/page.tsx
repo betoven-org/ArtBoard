@@ -9,12 +9,12 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: membership } = await supabase
+  const { data: membership, error: memErr } = await supabase
     .from('organization_members')
     .select('org_id, role')
     .eq('user_id', user.id)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (!membership) redirect('/')
 

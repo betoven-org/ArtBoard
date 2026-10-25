@@ -15,14 +15,25 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/auth/login')
 
-  // Buscar orgs do usuário
-  const { data: orgs } = await supabase
-    .from('organizations')
-    .select('*')
-    .order('created_at', { ascending: true })
+  // Buscar orgs via membership (evita recursão RLS na tabela organizations)
+  const { data: memberships } = await supabase
+    .from('organization_members')
+    .select('org_id')
+    .eq('user_id', user.id)
 
-  // Buscar clients da primeira org (ou a ativa)
-  const activeOrg = orgs?.[0]
+  const orgIds = (memberships || []).map(m => m.org_id)
+  let orgs: any[] = []
+
+  if (orgIds.length > 0) {
+    const { data } = await supabase
+      .from('organizations')
+      .select('*')
+      .in('id', orgIds)
+      .order('created_at', { ascending: true })
+    orgs = data || []
+  }
+
+  const activeOrg = orgs[0] || null
   let clients: any[] = []
   let teams: any[] = []
 

@@ -16,7 +16,7 @@ export async function getOrgContext() {
     .select('org_id, role')
     .eq('user_id', user.id)
     .limit(1)
-    .single()
+    .maybeSingle()
 
   if (!membership) throw new Error('Usuário sem organização')
 
