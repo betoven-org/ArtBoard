@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function updateComment(commentId: string, text: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('comments')
     .update({ text })
@@ -12,7 +12,7 @@ export async function updateComment(commentId: string, text: string) {
 }
 
 export async function deleteComment(commentId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('comments')
     .delete()

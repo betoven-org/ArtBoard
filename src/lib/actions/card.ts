@@ -1,10 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function createCard(listId: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: lastCard } = await supabase
     .from('cards')
@@ -47,7 +47,7 @@ export async function updateCard(
     closed?: boolean
   }
 ) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('cards')
     .update(updates)
@@ -57,7 +57,7 @@ export async function updateCard(
 }
 
 export async function deleteCard(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('cards')
     .update({ closed: true })
@@ -67,7 +67,7 @@ export async function deleteCard(cardId: string) {
 }
 
 export async function moveCard(cardId: string, targetListId: string, position: number) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('cards')
     .update({ list_id: targetListId, position })
@@ -77,7 +77,7 @@ export async function moveCard(cardId: string, targetListId: string, position: n
 }
 
 export async function getCard(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data, error } = await supabase
     .from('cards')
     .select(`
@@ -95,13 +95,11 @@ export async function getCard(cardId: string) {
 }
 
 export async function addComment(cardId: string, text: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Não autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const { data, error } = await supabase
     .from('comments')
-    .insert({ card_id: cardId, user_id: user.id, text })
+    .insert({ card_id: cardId, user_id: userId, text })
     .select()
     .single()
 
@@ -120,11 +118,12 @@ export async function addComment(cardId: string, text: string) {
           (u.email?.split('@')[0] || '').toLowerCase() === mentionName.toLowerCase()
         )
 
-        if (mentionedUser && mentionedUser.id !== user.id) {
+        if (mentionedUser && mentionedUser.id !== userId) {
           const { data: cardInfo } = await supabase.from('cards')
             .select('name, lists(board_id)').eq('id', cardId).single()
 
-          const authorName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Alguem'
+          const { data: { user } } = await supabase.auth.getUser()
+          const authorName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Alguem'
 
           await supabase.from('notifications').insert({
             user_id: mentionedUser.id,
@@ -144,7 +143,7 @@ export async function addComment(cardId: string, text: string) {
 }
 
 export async function toggleLabel(cardId: string, labelId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: existing } = await supabase
     .from('card_labels')
@@ -167,7 +166,7 @@ export async function toggleLabel(cardId: string, labelId: string) {
 }
 
 export async function createChecklist(cardId: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data, error } = await supabase
     .from('checklists')
@@ -180,7 +179,7 @@ export async function createChecklist(cardId: string, name: string) {
 }
 
 export async function addChecklistItem(checklistId: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: lastItem } = await supabase
     .from('checklist_items')
@@ -203,7 +202,7 @@ export async function addChecklistItem(checklistId: string, name: string) {
 }
 
 export async function toggleChecklistItem(itemId: string, checked: boolean) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('checklist_items')
     .update({ checked })
@@ -213,7 +212,7 @@ export async function toggleChecklistItem(itemId: string, checked: boolean) {
 }
 
 export async function copyCard(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: original } = await supabase
     .from('cards')
@@ -240,7 +239,7 @@ export async function copyCard(cardId: string) {
 }
 
 export async function getArchivedCards(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data: lists } = await supabase.from('lists').select('id, name').eq('board_id', boardId)
   if (!lists || lists.length === 0) return []
   const listIds = lists.map(l => l.id)
@@ -254,13 +253,13 @@ export async function getArchivedCards(boardId: string) {
 }
 
 export async function restoreCard(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase.from('cards').update({ closed: false }).eq('id', cardId)
   if (error) throw new Error(error.message)
 }
 
 export async function toggleCardMember(cardId: string, userId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: existing } = await supabase
     .from('card_members')

@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function deleteChecklistItem(itemId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('checklist_items')
     .delete()
@@ -12,7 +12,7 @@ export async function deleteChecklistItem(itemId: string) {
 }
 
 export async function deleteChecklist(checklistId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('checklists')
     .delete()

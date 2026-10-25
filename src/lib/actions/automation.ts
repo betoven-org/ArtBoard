@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getOrgContext, requireFeature } from '@/lib/org-context'
 
 export async function getAutomations(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('automations')
     .select('*')
@@ -20,7 +20,8 @@ export async function createAutomation(boardId: string, automation: {
   action_type: string
   action_config: Record<string, unknown>
 }) {
-  const supabase = await createClient()
+  await requireFeature('automations')
+  const { supabase } = await getOrgContext()
   const { data, error } = await supabase
     .from('automations')
     .insert({ board_id: boardId, ...automation })
@@ -32,7 +33,7 @@ export async function createAutomation(boardId: string, automation: {
 }
 
 export async function toggleAutomation(automationId: string, enabled: boolean) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('automations')
     .update({ enabled })
@@ -41,7 +42,7 @@ export async function toggleAutomation(automationId: string, enabled: boolean) {
 }
 
 export async function deleteAutomation(automationId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('automations')
     .delete()
@@ -54,7 +55,7 @@ export async function executeAutomations(boardId: string, cardId: string, event:
   fromListId?: string
   toListId?: string
 }) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
   const { data: automations } = await supabase
     .from('automations')

@@ -1,9 +1,10 @@
 'use server'
-import { createClient } from '@/lib/supabase/server'
+
 import { revalidatePath } from 'next/cache'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function getSprints(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('sprints')
     .select('*')
@@ -13,7 +14,7 @@ export async function getSprints(boardId: string) {
 }
 
 export async function createSprint(boardId: string, name: string, startDate?: string, endDate?: string, goal?: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data, error } = await supabase
     .from('sprints')
     .insert({ board_id: boardId, name, start_date: startDate || null, end_date: endDate || null, goal: goal || null })
@@ -24,21 +25,20 @@ export async function createSprint(boardId: string, name: string, startDate?: st
 }
 
 export async function updateSprint(sprintId: string, updates: { name?: string; status?: string; start_date?: string; end_date?: string; goal?: string }) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase.from('sprints').update(updates).eq('id', sprintId)
   if (error) throw new Error(error.message)
 }
 
 export async function deleteSprint(sprintId: string) {
-  const supabase = await createClient()
-  // Remove sprint_id from cards first
+  const { supabase } = await getOrgContext()
   await supabase.from('cards').update({ sprint_id: null }).eq('sprint_id', sprintId)
   const { error } = await supabase.from('sprints').delete().eq('id', sprintId)
   if (error) throw new Error(error.message)
 }
 
 export async function assignCardToSprint(cardId: string, sprintId: string | null) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase.from('cards').update({ sprint_id: sprintId }).eq('id', cardId)
   if (error) throw new Error(error.message)
 }

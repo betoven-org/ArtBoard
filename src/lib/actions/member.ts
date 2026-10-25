@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function getBoardMembers(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('board_members')
     .select('user_id, role')
@@ -11,7 +11,6 @@ export async function getBoardMembers(boardId: string) {
 
   if (!data || data.length === 0) return []
 
-  // Buscar nomes/emails dos usuarios
   const { data: { users } } = await supabase.auth.admin.listUsers()
   return data.map((m) => {
     const user = users?.find((u) => u.id === m.user_id)
@@ -24,9 +23,8 @@ export async function getBoardMembers(boardId: string) {
 }
 
 export async function inviteMember(boardId: string, email: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
-  // Buscar user por email via admin (simplificado - em produção usaria invite)
   const { data: users } = await supabase.auth.admin.listUsers()
   const user = users?.users?.find(u => u.email === email)
 

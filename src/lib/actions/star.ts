@@ -1,27 +1,26 @@
 'use server'
-import { createClient } from '@/lib/supabase/server'
+
 import { revalidatePath } from 'next/cache'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function toggleStar(boardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Nao autenticado')
+  const { supabase, userId } = await getOrgContext()
 
   const { data: existing } = await supabase
     .from('board_stars')
     .select()
     .eq('board_id', boardId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .maybeSingle()
 
   if (existing) {
     const { error } = await supabase.from('board_stars').delete()
-      .eq('board_id', boardId).eq('user_id', user.id)
+      .eq('board_id', boardId).eq('user_id', userId)
     if (error) throw new Error(error.message)
     revalidatePath('/')
     return false
   } else {
-    const { error } = await supabase.from('board_stars').insert({ board_id: boardId, user_id: user.id })
+    const { error } = await supabase.from('board_stars').insert({ board_id: boardId, user_id: userId })
     if (error) throw new Error(error.message)
     revalidatePath('/')
     return true
@@ -29,15 +28,13 @@ export async function toggleStar(boardId: string) {
 }
 
 export async function isStarred(boardId: string) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return false
+  const { supabase, userId } = await getOrgContext()
 
   const { data } = await supabase
     .from('board_stars')
     .select()
     .eq('board_id', boardId)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single()
 
   return !!data

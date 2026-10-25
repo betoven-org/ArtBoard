@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { BarChart2, Building2, ChevronDown, ChevronRight, Clock, FolderKanban, Plus, Sparkles, Users, UserPlus, X, MoreHorizontal, Image as ImageIcon, RotateCcw } from 'lucide-react'
+import { BarChart2, Building2, ChevronDown, ChevronRight, Clock, FolderKanban, Plus, Settings, Sparkles, Users, UserPlus, X, MoreHorizontal, Image as ImageIcon, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type { Workspace, Board, Organization, Client, Team } from '@/types/database'
@@ -425,6 +425,27 @@ export function Sidebar({ workspaces: initial, organizations, clients: initialCl
         >
           <Clock size={16} />
           {!collapsed && <span>Timesheet</span>}
+        </Link>
+
+        <Link
+          href="/settings"
+          style={{
+            width: 'calc(100% - 16px)',
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '6px 12px 6px 20px', margin: '0 8px',
+            border: 'none',
+            background: pathname === '/settings' ? COLORS.active : 'transparent',
+            cursor: 'pointer',
+            color: pathname === '/settings' ? COLORS.accent : COLORS.text,
+            fontSize: 14, fontWeight: 400, borderRadius: 4,
+            transition: 'background-color 150ms, color 150ms',
+            textDecoration: 'none', lineHeight: '20px',
+          }}
+          onMouseEnter={(e) => { if (pathname !== '/settings') { e.currentTarget.style.backgroundColor = COLORS.hover; e.currentTarget.style.color = COLORS.textHeading } }}
+          onMouseLeave={(e) => { if (pathname !== '/settings') { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = COLORS.text } }}
+        >
+          <Settings size={16} />
+          {!collapsed && <span>Configurações</span>}
         </Link>
 
         {/* Separador */}

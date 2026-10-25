@@ -1,12 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function createList(boardId: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
 
-  // Pegar a maior posição atual
   const { data: lastList } = await supabase
     .from('lists')
     .select('position')
@@ -30,7 +29,7 @@ export async function createList(boardId: string, name: string) {
 }
 
 export async function updateList(listId: string, updates: { name?: string; position?: number }) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('lists')
     .update(updates)
@@ -40,7 +39,7 @@ export async function updateList(listId: string, updates: { name?: string; posit
 }
 
 export async function archiveList(listId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('lists')
     .update({ closed: true })
@@ -50,13 +49,13 @@ export async function archiveList(listId: string) {
 }
 
 export async function getArchivedLists(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase.from('lists').select('id, name').eq('board_id', boardId).eq('closed', true)
   return data || []
 }
 
 export async function restoreList(listId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase.from('lists').update({ closed: false }).eq('id', listId)
   if (error) throw new Error(error.message)
 }

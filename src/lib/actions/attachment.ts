@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function addAttachment(cardId: string, url: string, name: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data, error } = await supabase
     .from('attachments')
     .insert({ card_id: cardId, url, name })
@@ -14,7 +14,7 @@ export async function addAttachment(cardId: string, url: string, name: string) {
 }
 
 export async function getAttachments(cardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('attachments')
     .select('*')
@@ -24,7 +24,7 @@ export async function getAttachments(cardId: string) {
 }
 
 export async function deleteAttachment(attachmentId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { error } = await supabase
     .from('attachments')
     .delete()

@@ -1,18 +1,16 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { getOrgContext } from '@/lib/org-context'
 
 export async function logActivity(boardId: string, cardId: string | null, action: string, details?: Record<string, unknown>) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return
+  const { supabase, userId } = await getOrgContext()
   await supabase.from('activity_log').insert({
-    board_id: boardId, card_id: cardId, user_id: user.id, action, details: details || {}
+    board_id: boardId, card_id: cardId, user_id: userId, action, details: details || {}
   })
 }
 
 export async function getBoardActivity(boardId: string) {
-  const supabase = await createClient()
+  const { supabase } = await getOrgContext()
   const { data } = await supabase
     .from('activity_log')
     .select('*, cards(name)')
