@@ -33,112 +33,98 @@ export default function LoginPage() {
   return (
     <main
       className="min-h-screen flex flex-col items-center justify-center px-4"
-      style={{
-        background: 'linear-gradient(180deg, #F6F7F9 0%, #ECEEF2 100%)',
-      }}
+      style={{ background: '#0f1419' }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 mb-10">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-          <rect x="1" y="1" width="10" height="20" rx="2" fill="#0052CC" />
-          <rect x="13" y="1" width="10" height="12" rx="2" fill="#0052CC" />
+      <div className="flex items-center gap-2.5 mb-10">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <rect x="1" y="1" width="10" height="20" rx="3" fill="#4c9aff" />
+          <rect x="13" y="1" width="10" height="12" rx="3" fill="#4c9aff" opacity="0.7" />
         </svg>
-        <span className="text-3xl font-bold tracking-tight" style={{ color: '#172B4D' }}>
+        <span style={{ fontSize: 24, fontWeight: 700, color: '#f0f3f6', letterSpacing: '-0.02em' }}>
           ArtBoard
         </span>
       </div>
 
       {/* Card */}
       <div
-        className="w-full max-w-[400px] rounded-lg p-8"
+        className="w-full max-w-[380px]"
         style={{
-          background: '#FFFFFF',
-          boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+          background: '#161b22',
+          border: '1px solid rgba(139, 148, 158, 0.12)',
+          borderRadius: 16,
+          padding: 32,
         }}
       >
-        <h1
-          className="text-base font-bold text-center mb-6"
-          style={{ color: '#5E6C84' }}
-        >
-          Fazer login na sua conta
+        <h1 style={{ fontSize: 16, fontWeight: 600, color: '#f0f3f6', textAlign: 'center', marginBottom: 24 }}>
+          Entrar na sua conta
         </h1>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 text-sm rounded transition-colors"
-              placeholder="Insira seu email"
-              style={{
-                background: '#FAFBFC',
-                border: '2px solid #DFE1E6',
-                color: '#172B4D',
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = '#4C9AFF')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = '#DFE1E6')}
-            />
-          </div>
+        <form onSubmit={handleLogin} className="space-y-3">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="Email"
+            style={{
+              width: '100%', padding: '10px 14px', fontSize: 14,
+              background: '#0f1419', color: '#f0f3f6',
+              border: '1px solid rgba(139, 148, 158, 0.2)',
+              borderRadius: 10, outline: 'none',
+              transition: 'border-color 200ms',
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = '#4c9aff')}
+            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(139, 148, 158, 0.2)')}
+          />
 
-          <div>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 text-sm rounded transition-colors"
-              placeholder="Insira sua senha"
-              style={{
-                background: '#FAFBFC',
-                border: '2px solid #DFE1E6',
-                color: '#172B4D',
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = '#4C9AFF')}
-              onBlur={(e) => (e.currentTarget.style.borderColor = '#DFE1E6')}
-            />
-          </div>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Senha"
+            style={{
+              width: '100%', padding: '10px 14px', fontSize: 14,
+              background: '#0f1419', color: '#f0f3f6',
+              border: '1px solid rgba(139, 148, 158, 0.2)',
+              borderRadius: 10, outline: 'none',
+              transition: 'border-color 200ms',
+            }}
+            onFocus={(e) => (e.currentTarget.style.borderColor = '#4c9aff')}
+            onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(139, 148, 158, 0.2)')}
+          />
 
           {error && (
-            <p className="text-sm" style={{ color: '#EB5A46' }}>{error}</p>
+            <p style={{ fontSize: 13, color: '#f85149', margin: 0 }}>{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 text-sm font-bold rounded transition-colors disabled:opacity-50"
             style={{
-              background: '#5AAC44',
-              color: '#FFFFFF',
+              width: '100%', padding: '10px 0', fontSize: 14, fontWeight: 600,
+              background: '#4c9aff', color: '#0f1419',
+              border: 'none', borderRadius: 10, cursor: 'pointer',
+              opacity: loading ? 0.6 : 1,
+              transition: 'opacity 200ms, background 200ms',
             }}
-            onMouseEnter={(e) => {
-              if (!loading) e.currentTarget.style.background = '#519839'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#5AAC44'
-            }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = '#79b8ff' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#4c9aff' }}
           >
-            {loading ? 'Entrando...' : 'Fazer login'}
+            {loading ? 'Entrando...' : 'Entrar'}
           </button>
         </form>
 
-        {/* Divisor */}
         <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px" style={{ background: '#DFE1E6' }} />
-          <span className="text-xs font-medium" style={{ color: '#5E6C84' }}>OU</span>
-          <div className="flex-1 h-px" style={{ background: '#DFE1E6' }} />
+          <div className="flex-1 h-px" style={{ background: 'rgba(139, 148, 158, 0.15)' }} />
+          <span style={{ fontSize: 11, fontWeight: 500, color: '#8b949e', textTransform: 'uppercase', letterSpacing: '0.05em' }}>ou</span>
+          <div className="flex-1 h-px" style={{ background: 'rgba(139, 148, 158, 0.15)' }} />
         </div>
 
-        <p className="text-center text-sm" style={{ color: '#5E6C84' }}>
-          Nao tem uma conta?{' '}
-          <Link
-            href="/auth/signup"
-            className="font-medium hover:underline"
-            style={{ color: '#0052CC' }}
-          >
+        <p style={{ textAlign: 'center', fontSize: 13, color: '#8b949e' }}>
+          Não tem conta?{' '}
+          <Link href="/auth/signup" style={{ color: '#4c9aff', fontWeight: 500, textDecoration: 'none' }}>
             Criar conta
           </Link>
         </p>
