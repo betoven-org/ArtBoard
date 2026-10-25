@@ -50,7 +50,7 @@ export async function getBoardWithLists(boardId: string) {
   let cards: any[] = []
   if (listIds.length > 0) {
     const { data } = await supabase.from('cards')
-      .select(`*, card_labels(label_id), card_members(user_id), checklists(id, checklist_items(id, checked)), comments(id), attachments:attachments(id)`)
+      .select(`id, list_id, name, position, due_date, due_complete, cover_color, priority, card_type, story_points, card_labels(label_id), card_members(user_id), checklists(id, checklist_items(id, checked)), comments(id), attachments:attachments(id)`)
       .in('list_id', listIds).eq('closed', false).order('position', { ascending: true })
     cards = data || []
   }
