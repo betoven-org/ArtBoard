@@ -18,15 +18,15 @@ type SidebarProps = {
 }
 
 const C = {
-  hover: '#A1BDD914',
-  active: '#579DFF26',
-  text: '#B6C2CF',
-  heading: '#DEE4EA',
-  accent: '#579DFF',
-  border: '#A6C5E229',
-  muted: '#9FADBC',
-  inputBg: '#22272B',
-  inputBorder: '#A6C5E24D',
+  hover: 'rgba(139, 148, 158, 0.08)',
+  active: 'rgba(76, 154, 255, 0.14)',
+  text: '#c9d1d9',
+  heading: '#f0f3f6',
+  accent: '#4c9aff',
+  border: 'rgba(139, 148, 158, 0.12)',
+  muted: '#8b949e',
+  inputBg: '#161b22',
+  inputBorder: 'rgba(139, 148, 158, 0.2)',
 }
 
 function NavLink({ href, icon, label, collapsed }: { href: string; icon: React.ReactNode; label: string; collapsed: boolean }) {
@@ -132,8 +132,9 @@ export function Sidebar({ workspaces: initial, organizations, clients, teams }: 
         width: collapsed ? 48 : sidebarWidth,
         display: 'flex', flexDirection: 'column', flexShrink: 0,
         height: '100%', position: 'relative',
-        background: 'rgba(29, 33, 37, 0.92)',
-        backdropFilter: 'blur(20px)',
+        background: 'rgba(22, 27, 34, 0.85)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         zIndex: 10, borderRadius: 12,
         transition: 'width 200ms ease', overflow: 'hidden',
       }}

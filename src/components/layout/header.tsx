@@ -52,7 +52,7 @@ function DropdownWrapper({
       ref={ref}
       className="absolute left-0 top-[calc(100%+4px)] w-[280px] rounded-lg py-1 z-[200] overflow-hidden"
       style={{
-        background: '#282E33',
+        background: '#242a33',
         border: '1px solid rgba(166, 197, 226, 0.16)',
         borderRadius: '8px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
@@ -112,10 +112,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
     <header
       className="h-12 flex items-center justify-between px-2 shrink-0 relative"
       style={{
-        background: 'rgba(29, 33, 37, 0.92)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(166, 197, 226, 0.16)',
+        background: 'rgba(22, 27, 34, 0.8)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        borderBottom: '1px solid rgba(139, 148, 158, 0.1)',
         zIndex: 200,
       }}
     >
@@ -127,10 +127,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
           className="flex items-center gap-1.5 px-2 py-1.5 rounded hover:bg-white/10 transition-colors"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <rect x="1" y="1" width="10" height="20" rx="2" fill="#579DFF" />
-            <rect x="13" y="1" width="10" height="12" rx="2" fill="#579DFF" />
+            <rect x="1" y="1" width="10" height="20" rx="2" fill="#4c9aff" />
+            <rect x="13" y="1" width="10" height="12" rx="2" fill="#4c9aff" />
           </svg>
-          <span className="text-lg font-bold" style={{ color: '#DEE4EA' }}>
+          <span className="text-lg font-bold" style={{ color: '#f0f3f6' }}>
             ArtBoard
           </span>
         </Link>
@@ -142,17 +142,17 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
             <button
               onClick={() => toggleDropdown('workspaces')}
               className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-normal rounded hover:bg-white/10 transition-colors"
-              style={{ color: '#9FADBC' }}
+              style={{ color: '#8b949e' }}
             >
               Workspaces
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             <DropdownWrapper open={openDropdown === 'workspaces'} onClose={() => setOpenDropdown(null)}>
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#9FADBC' }}>
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>
                 Seus workspaces
               </div>
               {workspaces.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-center" style={{ color: '#9FADBC' }}>
+                <div className="px-4 py-4 text-sm text-center" style={{ color: '#8b949e' }}>
                   Nenhum workspace
                 </div>
               ) : (
@@ -162,14 +162,14 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                     href="/"
                     onClick={() => setOpenDropdown(null)}
                     className="flex items-center gap-3 px-3 py-2 transition-colors"
-                    style={{ color: '#DEE4EA' }}
+                    style={{ color: '#f0f3f6' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     <div
                       className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold text-white shrink-0"
                       style={{
-                        background: 'linear-gradient(135deg, #579DFF, #6C5CE7)',
+                        background: 'linear-gradient(135deg, #4c9aff, #6C5CE7)',
                       }}
                     >
                       {ws.name.charAt(0).toUpperCase()}
@@ -186,17 +186,17 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
             <button
               onClick={() => toggleDropdown('recentes')}
               className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-normal rounded hover:bg-white/10 transition-colors"
-              style={{ color: '#9FADBC' }}
+              style={{ color: '#8b949e' }}
             >
               Recentes
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             <DropdownWrapper open={openDropdown === 'recentes'} onClose={() => setOpenDropdown(null)}>
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#9FADBC' }}>
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>
                 Boards recentes
               </div>
               {recentBoards.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-center" style={{ color: '#9FADBC' }}>
+                <div className="px-4 py-4 text-sm text-center" style={{ color: '#8b949e' }}>
                   Nenhum board recente
                 </div>
               ) : (
@@ -206,7 +206,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                     href={`/board/${board.id}`}
                     onClick={() => setOpenDropdown(null)}
                     className="flex items-center gap-3 px-3 py-2 transition-colors"
-                    style={{ color: '#DEE4EA' }}
+                    style={{ color: '#f0f3f6' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
@@ -226,17 +226,17 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
             <button
               onClick={() => toggleDropdown('starred')}
               className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-normal rounded hover:bg-white/10 transition-colors"
-              style={{ color: '#9FADBC' }}
+              style={{ color: '#8b949e' }}
             >
               Com estrela
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             <DropdownWrapper open={openDropdown === 'starred'} onClose={() => setOpenDropdown(null)}>
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#9FADBC' }}>
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>
                 Boards com estrela
               </div>
               {starredBoards.length === 0 ? (
-                <div className="px-4 py-4 text-sm text-center" style={{ color: '#9FADBC' }}>
+                <div className="px-4 py-4 text-sm text-center" style={{ color: '#8b949e' }}>
                   Nenhum board com estrela
                 </div>
               ) : (
@@ -246,7 +246,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                     href={`/board/${board.id}`}
                     onClick={() => setOpenDropdown(null)}
                     className="flex items-center gap-3 px-3 py-2 transition-colors"
-                    style={{ color: '#DEE4EA' }}
+                    style={{ color: '#f0f3f6' }}
                     onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
@@ -266,13 +266,13 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
             <button
               onClick={() => toggleDropdown('templates')}
               className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-normal rounded hover:bg-white/10 transition-colors"
-              style={{ color: '#9FADBC' }}
+              style={{ color: '#8b949e' }}
             >
               Templates
               <ChevronDown className="w-3.5 h-3.5 opacity-60" />
             </button>
             <DropdownWrapper open={openDropdown === 'templates'} onClose={() => setOpenDropdown(null)}>
-              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#9FADBC' }}>
+              <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: '#8b949e' }}>
                 Templates
               </div>
               {TEMPLATES.map((tpl) => (
@@ -284,10 +284,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                   onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#579DFF' }} />
+                  <FileText className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#4c9aff' }} />
                   <div className="min-w-0">
-                    <p className="text-sm" style={{ color: '#DEE4EA' }}>{tpl.name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#9FADBC' }}>{tpl.desc}</p>
+                    <p className="text-sm" style={{ color: '#f0f3f6' }}>{tpl.name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#8b949e' }}>{tpl.desc}</p>
                   </div>
                 </Link>
               ))}
@@ -300,11 +300,11 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
               onClick={() => toggleDropdown('criar')}
               className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded transition-colors"
               style={{
-                background: '#579DFF',
+                background: '#4c9aff',
                 color: '#1D2125',
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = '#85B8FF')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#579DFF')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#4c9aff')}
             >
               Criar
             </button>
@@ -321,10 +321,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
-                <LayoutGrid className="w-4 h-4 shrink-0" style={{ color: '#579DFF' }} />
+                <LayoutGrid className="w-4 h-4 shrink-0" style={{ color: '#4c9aff' }} />
                 <div className="min-w-0">
-                  <p className="text-sm" style={{ color: '#DEE4EA' }}>Criar quadro</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#9FADBC' }}>Crie um novo board</p>
+                  <p className="text-sm" style={{ color: '#f0f3f6' }}>Criar quadro</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#8b949e' }}>Crie um novo board</p>
                 </div>
               </button>
               <button
@@ -337,10 +337,10 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#A1BDD914')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
-                <Layers className="w-4 h-4 shrink-0" style={{ color: '#579DFF' }} />
+                <Layers className="w-4 h-4 shrink-0" style={{ color: '#4c9aff' }} />
                 <div className="min-w-0">
-                  <p className="text-sm" style={{ color: '#DEE4EA' }}>Criar workspace</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#9FADBC' }}>Organize </p>
+                  <p className="text-sm" style={{ color: '#f0f3f6' }}>Criar workspace</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#8b949e' }}>Organize </p>
                 </div>
               </button>
             </DropdownWrapper>
@@ -350,7 +350,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
         {/* Mobile criar */}
         <button
           className="md:hidden flex items-center justify-center w-8 h-8 rounded transition-colors ml-1"
-          style={{ background: '#579DFF', color: '#1D2125' }}
+          style={{ background: '#4c9aff', color: '#1D2125' }}
           onClick={() => {
             setSelectedWorkspaceId(workspaces[0]?.id || '')
             setNewBoardName('')
@@ -370,7 +370,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
       {/* Lado direito */}
       <div className="flex items-center gap-1">
         <button className="sm:hidden flex items-center justify-center w-8 h-8 rounded hover:bg-white/10 transition-colors">
-          <Search className="w-4 h-4" style={{ color: '#B6C2CF' }} />
+          <Search className="w-4 h-4" style={{ color: '#c9d1d9' }} />
         </button>
 
         {/* Notifications */}
@@ -380,7 +380,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
         <button
           className="hidden sm:flex items-center justify-center w-8 h-8 rounded hover:bg-white/10 transition-colors"
         >
-          <HelpCircle className="w-4 h-4" style={{ color: '#B6C2CF' }} />
+          <HelpCircle className="w-4 h-4" style={{ color: '#c9d1d9' }} />
         </button>
 
         {/* Avatar */}
@@ -389,7 +389,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
             onClick={() => setShowMenu(!showMenu)}
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
             style={{
-              background: '#579DFF',
+              background: '#4c9aff',
               color: '#1D2125',
             }}
             title={userName || 'Usuario'}
@@ -403,7 +403,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
               <div
                 className="absolute right-0 top-10 w-56 rounded-lg py-1 z-[200] shadow-2xl"
                 style={{
-                  background: '#282E33',
+                  background: '#242a33',
                   border: '1px solid rgba(166, 197, 226, 0.16)',
                   borderRadius: 8,
                   boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
@@ -412,7 +412,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 <div
                   className="px-4 py-3 text-sm font-medium"
                   style={{
-                    color: '#DEE4EA',
+                    color: '#f0f3f6',
                     borderBottom: '1px solid rgba(166, 197, 226, 0.16)',
                   }}
                 >
@@ -421,7 +421,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-[#A1BDD914] transition-colors duration-150"
-                  style={{ color: '#B6C2CF' }}
+                  style={{ color: '#c9d1d9' }}
                 >
                   <LogOut className="w-4 h-4" />
                   Sair
@@ -436,11 +436,11 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
         <>
           <div className="fixed inset-0 bg-black/50 z-[300]" onClick={() => setShowCreateBoard(false)} />
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <div className="w-full max-w-sm bg-[#282E33] rounded-xl border border-[#A6C5E229] shadow-[0_8px_24px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-sm bg-[#242a33] rounded-xl border border-[#A6C5E229] shadow-[0_8px_24px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#A6C5E229]">
-                <h3 className="text-base font-semibold text-[#DEE4EA]">Criar quadro</h3>
+                <h3 className="text-base font-semibold text-[#f0f3f6]">Criar quadro</h3>
                 <button onClick={() => setShowCreateBoard(false)} className="p-1 hover:bg-[#A1BDD914] rounded">
-                  <X className="w-4 h-4 text-[#9FADBC]" />
+                  <X className="w-4 h-4 text-[#8b949e]" />
                 </button>
               </div>
               <form
@@ -467,7 +467,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 </div>
                 {/* Background color */}
                 <div>
-                  <label className="text-xs font-semibold text-[#9FADBC] uppercase mb-1.5 block">Cor de fundo</label>
+                  <label className="text-xs font-semibold text-[#8b949e] uppercase mb-1.5 block">Cor de fundo</label>
                   <div className="flex gap-2 flex-wrap">
                     {BOARD_COLORS.map((color) => (
                       <button
@@ -477,7 +477,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                         className="w-8 h-6 rounded transition-all hover:ring-1 hover:ring-white/40"
                         style={{
                           backgroundColor: color,
-                          outline: selectedBoardColor === color ? '2px solid #579DFF' : 'none',
+                          outline: selectedBoardColor === color ? '2px solid #4c9aff' : 'none',
                           outlineOffset: 2,
                         }}
                       />
@@ -486,22 +486,22 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 </div>
                 {/* Board name */}
                 <div>
-                  <label className="text-xs font-semibold text-[#9FADBC] uppercase mb-1.5 block">Nome do quadro</label>
+                  <label className="text-xs font-semibold text-[#8b949e] uppercase mb-1.5 block">Nome do quadro</label>
                   <input
                     autoFocus
                     value={newBoardName}
                     onChange={(e) => setNewBoardName(e.target.value)}
                     placeholder="Nome do quadro"
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#22272B] text-[#B6C2CF] placeholder-[#8C9BAB] border border-[#A6C5E229] focus:outline-none focus:border-[#579DFF]"
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#1c2128] text-[#c9d1d9] placeholder-[#8C9BAB] border border-[#A6C5E229] focus:outline-none focus:border-[#4c9aff]"
                   />
                 </div>
                 {/* Workspace select */}
                 <div>
-                  <label className="text-xs font-semibold text-[#9FADBC] uppercase mb-1.5 block">Workspace</label>
+                  <label className="text-xs font-semibold text-[#8b949e] uppercase mb-1.5 block">Workspace</label>
                   <select
                     value={selectedWorkspaceId}
                     onChange={(e) => setSelectedWorkspaceId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#22272B] text-[#B6C2CF] border border-[#A6C5E229] focus:outline-none focus:border-[#579DFF]"
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#1c2128] text-[#c9d1d9] border border-[#A6C5E229] focus:outline-none focus:border-[#4c9aff]"
                   >
                     {workspaces.length === 0 && <option value="">Nenhum workspace</option>}
                     {workspaces.map((ws) => (
@@ -512,7 +512,7 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 <button
                   type="submit"
                   disabled={createBoardLoading || !newBoardName.trim() || !selectedWorkspaceId}
-                  className="w-full py-2.5 rounded-lg text-sm font-semibold bg-[#579DFF] text-[#1D2125] hover:bg-[#85B8FF] disabled:opacity-50 transition-colors"
+                  className="w-full py-2.5 rounded-lg text-sm font-semibold bg-[#4c9aff] text-[#1D2125] hover:bg-[#85B8FF] disabled:opacity-50 transition-colors"
                 >
                   {createBoardLoading ? 'Criando...' : 'Criar'}
                 </button>
@@ -527,11 +527,11 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
         <>
           <div className="fixed inset-0 bg-black/50 z-[300]" onClick={() => setShowCreateWorkspace(false)} />
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <div className="w-full max-w-sm bg-[#282E33] rounded-xl border border-[#A6C5E229] shadow-[0_8px_24px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-sm bg-[#242a33] rounded-xl border border-[#A6C5E229] shadow-[0_8px_24px_rgba(0,0,0,0.4)]" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#A6C5E229]">
-                <h3 className="text-base font-semibold text-[#DEE4EA]">Criar workspace</h3>
+                <h3 className="text-base font-semibold text-[#f0f3f6]">Criar workspace</h3>
                 <button onClick={() => setShowCreateWorkspace(false)} className="p-1 hover:bg-[#A1BDD914] rounded">
-                  <X className="w-4 h-4 text-[#9FADBC]" />
+                  <X className="w-4 h-4 text-[#8b949e]" />
                 </button>
               </div>
               <form
@@ -552,19 +552,19 @@ export function Header({ userName, workspaces = [], starredBoards = [] }: Header
                 }}
               >
                 <div>
-                  <label className="text-xs font-semibold text-[#9FADBC] uppercase mb-1.5 block">Nome do workspace</label>
+                  <label className="text-xs font-semibold text-[#8b949e] uppercase mb-1.5 block">Nome do workspace</label>
                   <input
                     autoFocus
                     value={newWorkspaceName}
                     onChange={(e) => setNewWorkspaceName(e.target.value)}
                     placeholder="Ex: Minha equipe"
-                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#22272B] text-[#B6C2CF] placeholder-[#8C9BAB] border border-[#A6C5E229] focus:outline-none focus:border-[#579DFF]"
+                    className="w-full px-3 py-2 rounded-lg text-sm bg-[#1c2128] text-[#c9d1d9] placeholder-[#8C9BAB] border border-[#A6C5E229] focus:outline-none focus:border-[#4c9aff]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={createWsLoading || !newWorkspaceName.trim()}
-                  className="w-full py-2.5 rounded-lg text-sm font-semibold bg-[#579DFF] text-[#1D2125] hover:bg-[#85B8FF] disabled:opacity-50 transition-colors"
+                  className="w-full py-2.5 rounded-lg text-sm font-semibold bg-[#4c9aff] text-[#1D2125] hover:bg-[#85B8FF] disabled:opacity-50 transition-colors"
                 >
                   {createWsLoading ? 'Criando...' : 'Criar workspace'}
                 </button>

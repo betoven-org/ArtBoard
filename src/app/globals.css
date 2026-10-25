@@ -1,49 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  /* ArtBoard Dark Theme Tokens */
-  --trello-surface: #1D2125;
-  --trello-surface-elevated: #22272B;
-  --trello-surface-overlay: #282E33;
-  --trello-text-primary: #B6C2CF;
-  --trello-text-heading: #DEE4EA;
-  --trello-text-link: #579DFF;
-  --trello-accent-blue: #579DFF;
-  --trello-accent-blue-hover: #85B8FF;
-  --trello-border-subtle: rgba(166, 197, 226, 0.16);
-  --trello-card-hover-ring: #579DFF;
-  --trello-danger: #F87168;
-  --trello-success: #4BCE97;
-  --trello-warning: #F5CD47;
-  --trello-radius-list: 12px;
-  --trello-radius-card: 8px;
-  --trello-font: var(--font-poppins), 'Poppins', sans-serif;
-  --trello-font-heading: var(--font-inter), 'Inter', sans-serif;
+  /* ArtBoard — Trello meets Apple */
+  --ab-bg: #0f1419;
+  --ab-surface: #161b22;
+  --ab-elevated: #1c2128;
+  --ab-overlay: #242a33;
+  --ab-text: #c9d1d9;
+  --ab-text-secondary: #8b949e;
+  --ab-heading: #f0f3f6;
+  --ab-accent: #4c9aff;
+  --ab-accent-hover: #79b8ff;
+  --ab-accent-subtle: rgba(76, 154, 255, 0.12);
+  --ab-border: rgba(139, 148, 158, 0.12);
+  --ab-border-strong: rgba(139, 148, 158, 0.24);
+  --ab-danger: #f85149;
+  --ab-success: #56d364;
+  --ab-warning: #e3b341;
+  --ab-purple: #a78bfa;
+  --ab-radius: 10px;
+  --ab-radius-sm: 6px;
+  --ab-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --background: var(--trello-surface);
-  --foreground: var(--trello-text-primary);
+  --background: var(--ab-bg);
+  --foreground: var(--ab-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-trello-surface: #1D2125;
-  --color-trello-elevated: #22272B;
-  --color-trello-overlay: #282E33;
-  --color-trello-text: #B6C2CF;
-  --color-trello-heading: #DEE4EA;
-  --color-trello-link: #579DFF;
-  --color-trello-blue: #579DFF;
-  --color-trello-blue-hover: #85B8FF;
-  --color-trello-danger: #F87168;
-  --color-trello-success: #4BCE97;
-  --color-trello-warning: #F5CD47;
-  --color-trello-border: rgba(166, 197, 226, 0.16);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body {
   height: 100%;
@@ -52,47 +40,33 @@ html, body {
 }
 
 body {
-  background: var(--trello-surface);
-  color: var(--trello-text-primary);
-  font-family: var(--trello-font);
+  background: var(--ab-bg);
+  color: var(--ab-text);
+  font-family: var(--ab-font);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar - ArtBoard style */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* Scrollbar — thin Apple style */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139, 148, 158, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139, 148, 158, 0.4); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(166, 197, 226, 0.2);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(166, 197, 226, 0.35);
-}
-
-/* Selection color */
 ::selection {
-  background: rgba(87, 157, 255, 0.3);
-  color: #DEE4EA;
+  background: rgba(76, 154, 255, 0.3);
+  color: var(--ab-heading);
 }
 
-/* Focus ring global */
 :focus-visible {
-  outline: 1px solid var(--trello-accent-blue);
-  outline-offset: 1px;
+  outline: 2px solid var(--ab-accent);
+  outline-offset: 2px;
+  border-radius: var(--ab-radius-sm);
 }
 
-/* Bell pulse animation */
+/* Bell animation */
 @keyframes bell-ring {
   0% { transform: rotate(0); }
   10% { transform: rotate(14deg); }
@@ -105,26 +79,9 @@ body {
   80% { transform: rotate(-1deg); }
   100% { transform: rotate(0); }
 }
+.bell-animate { animation: bell-ring 0.8s ease-in-out; }
 
-.bell-animate {
-  animation: bell-ring 0.8s ease-in-out;
-}
+.card-modal-overlay { width: 100vw; height: 100vh; }
+@supports (height: 100dvh) { .card-modal-overlay { width: 100dvw; height: 100dvh; } }
 
-/* Card modal fullscreen */
-.card-modal-overlay {
-  width: 100vw;
-  height: 100vh;
-}
-
-@supports (height: 100dvh) {
-  .card-modal-overlay {
-    width: 100dvw;
-    height: 100dvh;
-  }
-}
-
-/* Input placeholder */
-input::placeholder,
-textarea::placeholder {
-  color: rgba(182, 194, 207, 0.5);
-}
+input::placeholder, textarea::placeholder { color: rgba(139, 148, 158, 0.5); }

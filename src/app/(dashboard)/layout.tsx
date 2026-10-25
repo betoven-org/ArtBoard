@@ -95,16 +95,15 @@ export default async function DashboardLayout({
   }))
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: '#1D2125' }}>
+    <div className="h-screen flex flex-col" style={{ background: 'var(--ab-bg, #0f1419)' }}>
       <Header
         userName={userName}
         workspaces={headerWorkspaces}
         starredBoards={starredBoards}
       />
-      {/* Wrapper — fundo escuro com gap entre os painéis */}
       <div
         className="flex-1 overflow-hidden flex"
-        style={{ background: '#0D1117', gap: 12, padding: 12 }}
+        style={{ background: 'var(--ab-bg, #0f1419)', gap: 10, padding: 10 }}
       >
         {/* Painel esquerdo */}
         <Sidebar
